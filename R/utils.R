@@ -16,43 +16,6 @@
 ## ---------------------------
 
 
-# function to increase the third dimension of a 3D array
-# adding a given layer
-# add_layer <- function(arr, new_layer, new_name){
-#   # check that the new layer has the same dimensions as the old one
-#   if(!all(dim(arr)[1:2]==dim(new_layer))) stop("The dimension of the new layer do not match with the existing ones.")
-#   # check that we have 3 dimensions
-#   if(length(dim(arr))!=3) stop(sprintf("The array has %s dimensions, not 3.", length(dim(arr))))
-#   if(is.null(dimnames(arr))) stop("The array has no names.")
-#   # save all dimensions
-#   new_dim <- dim(arr)
-#   # increase 3rd dim
-#   new_dim[3] <- new_dim[3]+1
-#   # save and add names
-#   new_names <- dimnames(arr)
-#   new_names[[3]] <- c(new_names[[3]], new_name)
-#   # create new array
-#   arr_new <- array(NA, dim = new_dim, dimnames = new_names)
-#   # insert old array
-#   arr_new[,,-new_dim[3]] <- arr
-#   arr_new[,,new_dim[3]] <- new_layer
-#   arr_new
-# }
-
-# function to increase the third dimension of a 3D array
-# adding a given layer
-# insert_layer <- function(arr, new_layer, t){
-#   # check that the new layer has the same dimensions as the old one
-#   if(!all(dim(arr)[1:2]==dim(new_layer))) stop("The dimension of the new layer do not match with the existing ones.")
-#   # check that we have 3 dimensions
-#   if(length(dim(arr))!=3) stop(sprintf("The array has %s dimensions, not 3.", length(dim(arr))))
-#   if(is.null(dimnames(arr))) stop("The array has no names.")
-#   # create new array
-#   arr[,,as.character(t)] <- new_layer
-#   arr
-# }
-
-
 # function to create a gif
 
 # create_gif_bw <- function(model, dir, file_name, rate=5){

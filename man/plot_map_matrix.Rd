@@ -2,13 +2,18 @@
 % Please edit documentation in R/map_matrix.R
 \name{plot_map_matrix}
 \alias{plot_map_matrix}
-\title{Title}
+\title{Plot prehistorik map}
 \usage{
 plot_map_matrix(map_mat, plotly = FALSE)
 }
 \arguments{
-\item{plotly}{}
+\item{map_mat}{Object of the class \code{prehistorik_map} to be plotted.}
+
+\item{plotly}{Should the plot be interactive?}
+}
+\value{
+Plot.
 }
 \description{
-Title
+Plot a prehistorik map
 }

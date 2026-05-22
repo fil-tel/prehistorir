@@ -2,13 +2,22 @@
 % Please edit documentation in R/map_matrix.R
 \name{get_map_as_matrix}
 \alias{get_map_as_matrix}
-\title{Title}
+\title{Convert an \code{sf} object into a matrix}
 \usage{
 get_map_as_matrix(map, resolution, attr, set_free = TRUE)
 }
 \arguments{
-\item{set_free}{}
+\item{map}{Object of the class \code{sf}.}
+
+\item{resolution}{Resolution in meters of a side of a matrix cell.}
+
+\item{attr}{Which attribute of the \code{sf} object should be kept to define the value of a matrix cell?}
+
+\item{set_free}{Should not NA values be set to -1, hence be defined as free habitable cells of the map?}
+}
+\value{
+An object of the class \code{prehistorik_map}, corresponding to the a raster version of the map.
 }
 \description{
-Title
+Given an \code{sf} object, it rasterizes it and converts it into a \code{prehistorik_map}.
 }

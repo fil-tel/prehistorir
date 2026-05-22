@@ -2,13 +2,20 @@
 % Please edit documentation in R/map_matrix.R
 \name{plot_map_slice}
 \alias{plot_map_slice}
-\title{Title}
+\title{Plot a temporal slice of a prehistorik_model}
 \usage{
 plot_map_slice(model, time, plotly = FALSE)
 }
 \arguments{
-\item{plotly}{}
+\item{model}{Object of the class \code{prehistorik_model}.}
+
+\item{time}{Time point at which to extract the map.}
+
+\item{plotly}{Should the plot be interactive?}
+}
+\value{
+Plot
 }
 \description{
-Title
+Plot a temporal slice of a prehistorik_model
 }

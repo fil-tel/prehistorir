@@ -116,13 +116,13 @@ get_map_slice <- function(model, time){
 #   if(plotly) p <- plotly::ggplotly(p)
 #   p
 # }
-#' Title
+#' Plot a temporal slice of a prehistorik_model
 #'
-#' @param model
-#' @param time
-#' @param plotly
+#' @param model Object of the class \code{prehistorik_model}.
+#' @param time Time point at which to extract the map.
+#' @param plotly Should the plot be interactive?
 #'
-#' @returns
+#' @returns Plot
 #' @export
 #'
 plot_map_slice <- function(model, time, plotly = FALSE){

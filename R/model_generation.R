@@ -55,7 +55,7 @@ check_event <- function(event){
 #' @param live_map_3d Liveability map in 3D, where each layer correspond to one generation of the model.
 #' @param start_pop_mat Matrix corresponding to the starting populations.
 #' @param generation_time Generation time in years.
-#' @param jolly
+#' @param jolly Event ...
 #' @param N Either a function or a constant, corresponding to the number of individuals for each new tribe.
 #' @param radius Radius within which a new tribe can be spawned.
 #' @param kernel (optional) Kernel used by the convolution to establish the number of tribes in a neighbourhood. If not provided a standard kernel will be generated.
@@ -65,7 +65,7 @@ check_event <- function(event){
 #' @returns An object of the class \code{prehistorik_model}, which corresponds to a data frame containing the history of the metapopulation.
 #' @export
 #'
-create_prehistorik_model_cpp <- function(start_pop_mat, map_mat, b=1, d=0, t_start=1e6, t_stop=0, live_map_3d, generation_time = 30, jolly = NULL, N=NULL, radius=NULL, kernel=NULL, n_max=NULL, ...){
+create_prehistorik_model <- function(start_pop_mat, map_mat, b=1, d=0, t_start=1e6, t_stop=0, live_map_3d, generation_time = 30, jolly = NULL, N=NULL, radius=NULL, kernel=NULL, n_max=NULL, ...){
   if(!inherits(map_mat, "prehistorik_map")) stop("map_mat do not belong to the class prehistorik_map.\n Are you sure you use the function get_map_as_matrix to generate it?")
   if (is.null(N)) {
     stop("You did not provide any N value. It needs to be either a constant or a function.")

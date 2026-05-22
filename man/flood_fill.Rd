@@ -2,13 +2,22 @@
 % Please edit documentation in R/map_matrix.R
 \name{flood_fill}
 \alias{flood_fill}
-\title{Title}
+\title{Flood fill algorithm}
 \usage{
 flood_fill(map_mat, new_value, x, y)
 }
 \arguments{
-\item{y}{}
+\item{map_mat}{Object of the class \code{prehistorik_map}.}
+
+\item{new_value}{Value to be set in the area.}
+
+\item{x}{x coordinate at which to start the filling.}
+
+\item{y}{y coordinate at which to start the filling.}
+}
+\value{
+Object of the class \code{prehistorik_map} where the region has been filled by the given value.
 }
 \description{
-Title
+Implementation of the flood fill algorithm to fill a section of a matrix with a given value.
 }

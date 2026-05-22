@@ -46,10 +46,6 @@ compute_dist <- function(model, pop1, pop2){
   return(norm(as.matrix(pop1_coord - pop2_coord), "F"))
 }
 
-# sigmoid function
-sigmoid <- function(x, a=1){
-  1/(1+exp(x = (-a*x)))
-}
 ######################################
 ######################################
 ######################################
@@ -97,6 +93,16 @@ get_t_end <- function(model, pop1, pop2){
 # function that given a certain distance_df
 # created by create_distances_df returns a set of geneflows
 # given the location of the populations
+#' Create pairwise gene flow rates
+#'
+#' @param dist_df Object of the type \code{prehistorik_dist_df} as returned by the function \code{create_dist_df}.
+#' @param t_cutoff Time of coexistence of tribes below which gene flow cannot happen.
+#' @param gf_fun Function that takes as input the distance between tribes to calculate the proportion of gene flow.
+#' @param ...
+#'
+#' @returns A data frame of containing the gene flow rates between each pair of tribes.
+#' @export
+#'
 create_gf_df <- function(dist_df, t_cutoff, gf_fun, ...) {
   if(!inherits(dist_df, "prehistorik_dist_df")) stop("dist_df do not belong to the class prehistorik_dist_df\n Are you sure you use the function create_distances_df to generate it?")
   model <- get_model(dist_df)
@@ -164,6 +170,16 @@ get_dist_df_at_t <- function(model, time, threshold, resolution = NULL, as_df = 
 # between tribes living at the same time
 # threshold gives the threshold in meters after the one
 # gene flows are not possible
+#' Create a data frame of distances between tribes
+#'
+#' Given a \code{prehisotrik_model}, this function calculate the pairwise distances in meters between all the exisitnf tribes.
+#'
+#' @param model Object of the class \code{prehistorik_model}.
+#' @param threshold Distance in meters after which distances are not calculated.
+#'
+#' @returns A data frame containing all the pairwise distances between tribes.
+#' @export
+#'
 create_dist_df <- function(model, threshold) {
   if(!inherits(model, "prehistorik_model")) stop("model do not belong to the class prehistorik_model\n Are you sure you use the function create_prehistorik_model to generate it?")
   # check that the pops have coordinates
@@ -214,11 +230,24 @@ get_alive_pop <- function(model, time){
   }
 }
 
+#' Plot gene flows as graph
+#'
+#'
+#'
+#' @param model Object of the class \code{prehistorik_model}.
+#' @param time Time at which to extract the gene flows
+#' @param threshold Distance in meters at which to not show gene flows.
+#' @param lat_range Range of latitudes to plot.
+#' @param lon_range Range of longitudes to plot.
+#'
+#' @returns Plot of gene flows.
+#' @export
+#'
 plot_gf_as_graph <- function(model, time, threshold, lat_range=NULL, lon_range=NULL){
   if(!inherits(model, "prehistorik_model")) stop("Model do not belong to the class prehistorik_model\n Are you sure you use the function create_distances_df to generate it?")
   # remove African populations
   my_model_f <- model[!model$pop==0,]
-  dist_df <- get_dist_df_at_t(my_model_f, time = time, threshold = 50e3)
+  dist_df <- get_dist_df_at_t(my_model_f, time = time, threshold = threshold)
   # get pop in this time period
   my_pop_df <- get_alive_pop(model = my_model_f, time)
   edges <- dist_df[, c("pop1", "pop2")]

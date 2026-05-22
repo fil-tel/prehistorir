@@ -2,13 +2,18 @@
 % Please edit documentation in R/map_matrix.R
 \name{get_map_slice}
 \alias{get_map_slice}
-\title{Title}
+\title{Extract a temporal slice from a prehistorik model}
 \usage{
 get_map_slice(model, time)
 }
 \arguments{
-\item{time}{}
+\item{model}{Object of the class \code{prehistorik_model}.}
+
+\item{time}{Time point at which to extract the map.}
+}
+\value{
+An object of the class \code{prehistorik_map}.
 }
 \description{
-Title
+Obtain a temporal slice of the map of a prehistorik model.
 }

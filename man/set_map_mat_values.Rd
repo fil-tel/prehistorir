@@ -2,13 +2,26 @@
 % Please edit documentation in R/map_matrix.R
 \name{set_map_mat_values}
 \alias{set_map_mat_values}
-\title{Title}
+\title{Set entries of a \code{prehistorik_map}}
 \usage{
 set_map_mat_values(map_mat, value, x, y, subset = FALSE, na = FALSE)
 }
 \arguments{
-\item{na}{}
+\item{map_mat}{Object of the class \code{prehistorik_map}.}
+
+\item{value}{Value to insert at the given coordinates.}
+
+\item{x}{x coordinate(s) to modify.}
+
+\item{y}{y coordinate(s) to modify.}
+
+\item{subset}{Should the (x,y) coordinates be treated as a list of points or as an area?}
+
+\item{na}{If the existing value is NA, should we modify it?}
+}
+\value{
+\code{map} given as input, but with the entries modified.
 }
 \description{
-Title
+Function to modify entries of a \code{prehistorik_map}.
 }
