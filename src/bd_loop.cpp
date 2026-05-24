@@ -1,10 +1,7 @@
-// #include <Rcpp.h>
-#include <RcppArmadillo.h>
 #include <RcppArmadilloExtensions/sample.h>
-
+#include <RcppArmadillo.h>
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
-
 
 // [[Rcpp::export]]
 double sum_nan_cpp(const arma::mat& M){
@@ -12,7 +9,6 @@ double sum_nan_cpp(const arma::mat& M){
   clone.replace(NA_REAL, 0);
   return  arma::accu(clone);
 }
-
 
 // [[Rcpp::export]]
 arma::mat mat_prod(arma::mat& A, arma::mat& B){
@@ -117,7 +113,6 @@ arma::mat make_binary(arma::mat& M, const bool& keep_na){
   return bin;
 }
 
-
 // [[Rcpp::export]]
 arma::mat convolve_mat_full_cpp(arma::mat& M, arma::mat& kernel){
   // get binary
@@ -144,7 +139,6 @@ arma::mat convolve_mat_full_cpp(arma::mat& M, arma::mat& kernel){
 //   conv_mat.elem(arma::find_nonfinite(M)).operator/=(NA_REAL);
 //   return conv_mat;
 // }
-
 
 // [[Rcpp::export]]
 IntegerVector convert_xy_new(const int& x_par, const int& y_par, const int& x_new, const int& y_new, const int& radius){

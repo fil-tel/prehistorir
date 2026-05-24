@@ -300,6 +300,14 @@ flood_fill <- function(map_mat, new_value, x, y){
 
 # function to generate of a given radius in meters
 # populate by all 1s, except the center that it is 0
+#' Generate a 1s kernel
+#'
+#' @param map_mat An object of the class \code{prehistorik_map}.
+#' @param radius Radius in meters for the kernel.
+#'
+#' @returns A matrix
+#' @export
+#'
 generate_kernel <- function(map_mat, radius) {
   # to define the dimension of the kernel we need
   # to start from the resolution
@@ -474,6 +482,15 @@ generate_kernel <- function(map_mat, radius) {
 
 
 # given a point in latitude and longitude it gives back the corresponding cell
+#' Title
+#'
+#' @param lat aa
+#' @param lon aa
+#' @param map_mat aa
+#'
+#' @returns aa
+#' @export
+#'
 get_xy_from_latlon <- function(lat, lon, map_mat){
   if(!inherits(map_mat, "prehistorik_map")) stop("Not a prehisotrik_map.")
   # map_mat has to be prehistorik_map
@@ -496,6 +513,15 @@ get_xy_from_latlon <- function(lat, lon, map_mat){
 }
 
 
+#' Title
+#'
+#' @param x aa
+#' @param y aa
+#' @param map_mat aa
+#'
+#' @returns aa
+#' @export
+#'
 get_latlon_from_xy <- function(x, y, map_mat){
   if(!inherits(map_mat, "prehistorik_map")) stop("Not a prehisotrik_map.")
   # map_mat has to be prehistorik_map

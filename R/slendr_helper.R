@@ -13,7 +13,7 @@
 ## ---------------------------
 ##
 ## Notes:
-##   
+##
 ##
 ## ---------------------------
 
@@ -64,7 +64,7 @@ get_samples_from_location <- function(model, n, time, lat, lon){
   # (if two or more are exisitng at the same distance just pick one)
   # place on top the point
   dist_m <- dist(rbind(xy_tbl, pop_df[, c("x", "y")]))
-  # remove rows corresponding to 
+  # remove rows corresponding to
   # extract the pop closest
   pop <- pop_df[which.min(dist_m[1:nrow(pop_df)]),]
   # might have to do it better, for example a cutoff might be useful otherwise it could pick a population that is super far just because there is nothing nearby

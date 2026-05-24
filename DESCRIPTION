@@ -27,6 +27,7 @@ Imports:
     plotly,
     Rcpp,
     RcppAlgos,
-    sf,
-    slendr,
     stars
+Depends: 
+    sf,
+    slendr
