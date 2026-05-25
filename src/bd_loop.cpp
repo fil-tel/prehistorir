@@ -24,10 +24,14 @@ arma::mat mat_prod(arma::mat& A, arma::mat& B){
 // as matrices are actually column vectors
 // [[Rcpp::export]]
 int sample_next_xy(arma::mat& M){
+  // M corresponds to the convolved neighbourhood, meaning that
+  // each entry correspond to the number of pops in that neighbourhood
   arma::uvec v = arma::find_finite(M);
+  // UPDATE: not anymore necesssary
   // M.elem(v) corresponds to the weights used to sample
   // as the spawn matrix contains these
-  arma::uvec i = RcppArmadillo::sample(v, 1, false, M.elem(v));
+  arma::vec p(v.n_elem, arma::fill::value(1.0/M.n_elem));
+  arma::uvec i = RcppArmadillo::sample(v, 1, false, p);
   return i[0];
 }
 

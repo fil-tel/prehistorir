@@ -2,58 +2,58 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 sum_nan_cpp <- function(M) {
-    .Call('_prehistorir_sum_nan_cpp', PACKAGE = 'prehistorir', M)
+    .Call(`_prehistorir_sum_nan_cpp`, M)
 }
 
 mat_prod <- function(A, B) {
-    .Call('_prehistorir_mat_prod', PACKAGE = 'prehistorir', A, B)
+    .Call(`_prehistorir_mat_prod`, A, B)
 }
 
 sample_next_xy <- function(M) {
-    .Call('_prehistorir_sample_next_xy', PACKAGE = 'prehistorir', M)
+    .Call(`_prehistorir_sample_next_xy`, M)
 }
 
 select_row <- function(M, v) {
-    .Call('_prehistorir_select_row', PACKAGE = 'prehistorir', M, v)
+    .Call(`_prehistorir_select_row`, M, v)
 }
 
 extract_neighbourhood_cpp <- function(map_mat, x, y, radius) {
-    .Call('_prehistorir_extract_neighbourhood_cpp', PACKAGE = 'prehistorir', map_mat, x, y, radius)
+    .Call(`_prehistorir_extract_neighbourhood_cpp`, map_mat, x, y, radius)
 }
 
 define_spawn_map <- function(conv_map_mat, live_map_mat, x, y, radius) {
-    .Call('_prehistorir_define_spawn_map', PACKAGE = 'prehistorir', conv_map_mat, live_map_mat, x, y, radius)
+    .Call(`_prehistorir_define_spawn_map`, conv_map_mat, live_map_mat, x, y, radius)
 }
 
 check_neighbourhood_cpp <- function(M, ratio) {
-    .Call('_prehistorir_check_neighbourhood_cpp', PACKAGE = 'prehistorir', M, ratio)
+    .Call(`_prehistorir_check_neighbourhood_cpp`, M, ratio)
 }
 
 check_spawn_map_cpp <- function(M) {
-    .Call('_prehistorir_check_spawn_map_cpp', PACKAGE = 'prehistorir', M)
+    .Call(`_prehistorir_check_spawn_map_cpp`, M)
 }
 
 make_binary <- function(M, keep_na) {
-    .Call('_prehistorir_make_binary', PACKAGE = 'prehistorir', M, keep_na)
+    .Call(`_prehistorir_make_binary`, M, keep_na)
 }
 
 convolve_mat_full_cpp <- function(M, kernel) {
-    .Call('_prehistorir_convolve_mat_full_cpp', PACKAGE = 'prehistorir', M, kernel)
+    .Call(`_prehistorir_convolve_mat_full_cpp`, M, kernel)
 }
 
 convert_xy_new <- function(x_par, y_par, x_new, y_new, radius) {
-    .Call('_prehistorir_convert_xy_new', PACKAGE = 'prehistorir', x_par, y_par, x_new, y_new, radius)
+    .Call(`_prehistorir_convert_xy_new`, x_par, y_par, x_new, y_new, radius)
 }
 
 update_conv_map_mat_cpp <- function(conv_map_mat, map_mat, kernel, x, y, radius) {
-    invisible(.Call('_prehistorir_update_conv_map_mat_cpp', PACKAGE = 'prehistorir', conv_map_mat, map_mat, kernel, x, y, radius))
+    invisible(.Call(`_prehistorir_update_conv_map_mat_cpp`, conv_map_mat, map_mat, kernel, x, y, radius))
 }
 
 bd_loop <- function(pop_mat, map_mat, conv_map_mat, live_map_mat, kernel, pop_ids, sampled_events, N, radius, next_pop_v, offset, n_v, n_max, t, i_mat_v) {
-    invisible(.Call('_prehistorir_bd_loop', PACKAGE = 'prehistorir', pop_mat, map_mat, conv_map_mat, live_map_mat, kernel, pop_ids, sampled_events, N, radius, next_pop_v, offset, n_v, n_max, t, i_mat_v))
+    invisible(.Call(`_prehistorir_bd_loop`, pop_mat, map_mat, conv_map_mat, live_map_mat, kernel, pop_ids, sampled_events, N, radius, next_pop_v, offset, n_v, n_max, t, i_mat_v))
 }
 
 conv_2d_cpp <- function(pad, kernel) {
-    .Call('_prehistorir_conv_2d_cpp', PACKAGE = 'prehistorir', pad, kernel)
+    .Call(`_prehistorir_conv_2d_cpp`, pad, kernel)
 }
 
