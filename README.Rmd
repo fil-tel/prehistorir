@@ -1,0 +1,434 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# *prehistorir*: a generator of hunter-gatherer tribes
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+*prehistorir* is a spatial simulator of hunter-gatherer tribes. The
+purpose of this project was to develop a software able to model what it
+could potentially be the generation and expansion of metapopulations formed by interconnected demes
+(which we call *prehistorir* tribes) that undergo
+extinction/recolonization dynamics over time. The ultimate goal is to use these models to
+infer the organization and social dynamics of prehistoric
+hunter-gatherers who lived in Europe during the last Ice Age. This will be achieved by using these models as input for genomic simulations with [SLiM](https://pmc.ncbi.nlm.nih.gov/articles/PMC3730910/) and inferring the model parameters through Approximate Bayesian Computation (ABC) methods, comparing summary statistics computed on simulated genomes against the same summary statistics computed on available empirical genomes.
+
+Briefly, *prehistorir* can, in some way, be thought as a turn-based game
+where each *prehistorir* tribe is a chess piece on a chessboard, i.e., a
+2D discrete world (grid). At every turn, which we interpret as
+generations, each tribe can either give birth to a child tribe, die, or
+do nothing. This is modeled using a birth-death process, parameterized
+by the probability of giving birth ($\beta$-rate) and death
+($\delta$-rate). Moreover, a child tribe cannot spawn anywhere in the
+world, but only within a neighbourhood of the parent tribe defined by a
+given radius. Finally, if every location of the world can be populated,
+for $\beta$-rate $>\delta$-rate the world would be eventually saturated.
+To avoid this happening, for each square of our chessboard we can define
+a “carrying capacity”, which corresponds to the maximum number of tribes
+that a given square can support.
+
+## Installation
+
+You can install the development version of prehistorir from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("fil-tel/prehistorir")
+```
+
+## Example: implementing a European Out-of-Africa expansion
+
+This is a basic example which shows what an Out-of-Africa expansion could have looked like.
+First of all we load the *prehistorir* package.
+
+```{r example}
+library(prehistorir)
+```
+
+Now, the first step we need to take is to decide the world of the
+simulation. In our case is roughly Europe.
+
+```{r}
+whole_map <- world(
+  xrange = c(-13, 70), # min-max longitude
+  yrange = c(18, 70),  # min-max latitude
+  crs = "EPSG:4326"    # coordinate reference system (CRS) for West Eurasia
+)
+
+plot_map(whole_map)
+```
+
+Together with the world, we need to define a restriction map, which defines the carrying capacity. In our case, we use paleoclimatic maps corresponding to the Last Glacial Maximum (LGM) available here:
+https://intarch.ac.uk/journal/issue11/2/map/download_page_js.htm .
+
+```{r}
+url <- "https://intarch.ac.uk/journal/issue11/2/map/shapezip/world_cut.shp.zip"
+# unlink("masks", recursive = FALSE)
+dir.create("masks", recursive = TRUE)
+file_path <- here::here("masks/world_cut.shp.zip")
+
+if (!file.exists(file_path)) {
+  download.file(url = url, destfile = here::here("masks/world_cut.shp.zip"))
+}
+
+# read files
+vegetation <- st_read(file_path)
+
+# ice sheet = 26, alpine desert == 15
+vegetation %>% ggplot()+geom_sf(aes(fill=VEG_ID))
+
+# set crs, weird than it is not already there
+vegetation <- vegetation %>%
+  st_set_crs(4326) %>%
+  st_make_valid()
+
+```
+Now we want to extract only the area of the map we are interested in, hence Europe. Once obtain this we want to rasterize it in order to obtain a discrete 2D world.
+
+```{r}
+# crop the vegetation map in order to only consider Europe 
+veg_map <- st_crop(vegetation, st_bbox(whole_map))
+# first remove lakes so they are going to be NA
+# as they are not liveable
+veg_map <- veg_map %>% filter(VEG_ID!=25)
+# union the veg_map, so to have the borders of the continental world
+# during the LGM, e.g., Adriatic sea was smaller
+map <- veg_map %>% st_union() %>% st_as_sf() %>% mutate(land=1)
+
+# now we can think about rasterizing,
+# first we need to obtain the projections of the two maps
+
+# transform crs to have it projected
+veg_map <- veg_map %>% st_transform(crs = 3035)
+map <- map %>% st_transform(crs = 3035)
+
+# define resolution of raster cells
+resolution <- 20e3
+
+# obtain the matrices
+# the argument attr defines the attribute of the sf object we 
+# want to have in the matrix
+# set_free is an argument that if TRUE 
+# set whatever is not NA to -1, hence free habitable cells
+raster_vegid <- get_map_as_matrix(
+  map = veg_map,
+  resolution = resolution,
+  attr = "VEG_ID",
+  set_free = FALSE
+)
+my_map_mat <- get_map_as_matrix(map = map,
+                                resolution = resolution,
+                                attr = "land")
+
+# check that the dimesnions of the two rasters are the same
+identical(dim(raster_vegid),dim(my_map_mat))
+```
+
+According to our model, different habitats might have different carrying capacity and these might change as a function of time in our simulation. This means that ideally we might want to have a different friction maps for different times, hence the friction map would actually be a cube where the $z$ axis correspond to the generations in out model. Here is an example of how you could do it starting from the paleoclimatic map of the LGM.
+First we define some helper functions.
+
+```{r}
+# convert the raster_vegid into liveability probabilities
+# according to which type of climate/vegetation type we have
+# here is a legend:
+# https://intarch.ac.uk/journal/issue11/2/8.html
+# for now let's just ocnvert it into liveable (1), or not (0)
+# later on this will ideally become continuous probabvilities
+# LEGEND:
+# 3 -> Tropical woodland
+# 5	-> Tropical semi-desert
+# 6	-> Tropical grassland
+# 7	-> Tropical extreme desert
+# 11 -> Open boreal woodlands
+# 13 -> Tundra
+# 14 -> Steppe-tundra
+# 15 -> Polar and alpine desert
+# 16 -> Temperate desert
+# 18 -> Forest steppe
+# 22 -> Dry steppe
+# 25 -> Lakes and open water
+# 26 -> Ice sheet and other permanent ice
+# set to NA carrying capacity 15, 25, 26
+# as no liveable
+#
+# function to sample from norm dist
+sample_norm <- function(n, mu, sd) {
+  s <- rnorm(n, mu, sd)
+  s <- round(s)
+  s[s < 0] <- 0
+  s
+}
+
+# function to create a friction map given the biomes present in the map above
+create_friction_map <- function(raster_veg,
+                                t_start,
+                                t_stop = 0,
+                                generation_time = 30) {
+  # expand the livability map in order to have a map
+  # for each generation of the model we are going to create
+  dim_3 <- seq(t_start, t_stop, -generation_time)
+  raster_veg[which(raster_veg %in% c(15, 26))] <- NA
+  raster_vegid_3d <- array(raster_veg, c(dim(raster_veg), length(dim_3)), dimnames = c(dimnames(raster_veg), list(dim_3)))
+  # set to 20 tribes forest steppe
+  j <- 1
+  rate <- 10
+  for (i in seq(rate, length(dim_3), rate)) {
+    raster_vegid <- raster_vegid_3d[, , j:i]
+    raster_vegid_3d[, , j:i][which(raster_vegid == 18)] <- sample_norm(sum(raster_veg ==
+                                                                             18, na.rm = TRUE), 200, 50)
+    # set to 10 Tundra and Steppe-Tundra, Temperate desert
+    raster_vegid_3d[, , j:i][which(raster_vegid %in% c(13, 14, 16))] <- sample_norm(sum(raster_veg %in% c(13, 14, 16), na.rm = T), 40, 20)
+    # set to 30 open boreal woodland
+    raster_vegid_3d[, , j:i][which(raster_vegid == 11)] <- rnorm(sum(raster_veg ==
+                                                                       11, na.rm = T), 70, 30)
+    raster_vegid_3d[, , j:i][which(raster_vegid %in% c(3, 5, 6, 7))] <- sample_norm(sum(raster_veg %in%
+                                                                                          c(3, 5, 6, 7), na.rm = T), 110, 50)
+    j <- i + 1
+  }
+  # plot_map_matrix(raster_vegid, T)
+  # now lwt's find the reciprocal of the matrix
+  # where it is 0 aka non liveable we will get NA
+  # wherever else we will obtain the carrying capacity of the cell, ie how many tribes
+  # max can live in that area
+  1 / raster_vegid_3d
+}
+```
+
+Then we define some of the parameters of our model, and using these we create the 3D friction map. 
+
+```{r}
+# parameters definition
+# we need the t_start, t_stop, and the generation time to know
+# how many generations our model has, hence how many layers of the friction map
+t_start <- 10e3
+t_stop <- 0
+generation_time <- 30
+# create the friction map
+raster_vegid_3d <- create_friction_map(raster_vegid, t_start, t_stop, generation_time)
+```
+
+Now that we define the friction map, we can start working on the world where the tribes will be created. Before starting, it is important to note that in a *prehistorik* model values saved in cells have different meaning. In particular:
+- NA cells correspond to non-habitable places, e.g., sea, lakes, etc.
+- -1 cells correspond to free and habitable places
+- !=-1 cells correspond to places that are occupied by a tribe, and the tribe ID is stored in the cell value.
+
+Moreover, what in our model would be an ancestral population to all the tribes, i.e. the African population in our case will have the tribe ID 0. In our case, we are not interested in modeling anything regarding the African population, but both for an aesthetic reason and as a placeholder we will populate all the north African region visible in our map with 0 values. This could be easily done in other ways, and we could for example just insert NA if we are not interested in having that region modeled, but in this case I have it like this.
+
+To populate it all of 0 we will use the flood-fill algorithm and we will use as boundary an ideal Suez canal.
+
+```{r}
+# define the Suez canal as the pixel that separates
+# the AFR from the EUR and the starting population
+x_suez <- 242
+y_suez <- 55:74
+my_map_mat <- set_map_mat_values(my_map_mat, 1, x = x_suez, y = y_suez)
+x_suez_h <- 242:246
+y_suez_h <- 55
+my_map_mat <- set_map_mat_values(my_map_mat, 1, x = x_suez_h, y = y_suez_h)
+plot_map_matrix(my_map_mat, plotly = F)
+
+# choose a point in Africa so to populate
+# (flood fill) Africa so that it is all 0 (ANC pop)
+x <- 24
+y <- 19
+my_map_mat <- flood_fill(my_map_mat, 0, x, y)
+plot_map_matrix(my_map_mat, plotly = F)
+# now fill also the Suez canal with 0
+my_map_mat <- set_map_mat_values(my_map_mat, 0, x = x_suez, y = y_suez)
+my_map_mat <- set_map_mat_values(my_map_mat, 0, x = x_suez_h, y = y_suez_h)
+# my_map_mat <- set_map_mat_values(my_map_mat, 0, x = x_gib, y = y_gib)
+plot_map_matrix(my_map_mat, plotly = F)
+
+```
+Now we can save the African tribe in our starting data frame. Again, this could be done differently, but I have implemented it like this for now.
+
+```{r}
+# define the starting data_frame
+# t_start afr
+t_start_afr <- 700e3
+# ne afr
+N_afr <- 15e3
+# get the coordinates of the "African tribes"
+coords_afr <- which(my_map_mat==0, arr.ind = TRUE)
+# get a df for the afr pop
+# not that the active flag tells whether the population is active (can be modified) during
+# the simulation, e.g. AFR is not because we won't touch it
+
+afr_pop_df <- data.frame(
+  parent = 0,
+  pop = 0,
+  t_start = t_start_afr,
+  t_end = 0,
+  alive = TRUE,
+  x = coords_afr[,1],
+  y = coords_afr[,2],
+  N = N_afr,
+  active=FALSE
+)
+# convert it into matrix, as working with matrices 
+# is more efficient compared to data frames
+afr_pop_mat <- as.matrix(afr_pop_df)
+```
+
+As a following step, we can seed an arbitrary number of initial OOA tribes.
+
+```{r}
+# number of starting tribes
+n_start <- 20
+
+##########################################
+#######  Tribe sizes definition  #########
+##########################################
+
+# function to sample the number of individuals 
+# N within a tribe
+sample_N <- function(n){
+  # use log normal
+  ns <- as.integer(rlnorm(n, meanlog = 3.5, sdlog = 0.5))
+  # if less than set it to 15     
+  ifelse(ns<15, 15, ns)
+}
+# get N for tribes
+N_tribes <- sample_N(n_start)
+
+# decide the coords of the new tribes
+# careful that this way you could place pops in the same spot
+tribes_x <- sample(280:330, size = n_start, TRUE)
+tribes_y <- sample(60:110, size = n_start, TRUE)
+# set the values on the map
+# (Will modify the function so that I can make it in one line)
+
+for (i in seq_along(tribes_x)) {
+  my_map_mat <- set_map_mat_values(my_map_mat, i, x = tribes_x[i], y = tribes_y[i])
+}
+
+# visualize them
+plot_map_matrix(my_map_mat, plotly = F)
+
+
+# create a data frame for these tribes
+# t_start has been defined when created the friction map
+first_tribes_df <- data.frame(
+  parent = 0,
+  pop = 1:n_start,
+  t_start = t_start,
+  t_end = 0,
+  alive = TRUE,
+  x = tribes_x,
+  y = tribes_y,
+  N = N_tribes,
+  active=TRUE
+)
+
+# convert it into a matrix
+first_tribes_mat <- as.matrix(first_tribes_df)
+
+# combined the data frame of the African together with the data frame of the OOA tribes
+start_pop_mat <- rbind(afr_pop_mat, first_tribes_mat)
+```
+
+At this point, we just need to define a kernel which will be used as a "counter" of tribes in a neighbourhood, and the birth-death rates.
+
+```{r}
+# kernel definition in km
+radius <- 250e3
+kern <- generate_kernel(radius = radius, map_mat = my_map_mat)
+
+# set birth-death rate
+b <- 0.09
+d <- 0.05
+
+# create the model
+# NOTE: this is the core function
+
+my_model <- create_prehistorik_model(
+  b = b,
+  d = d,
+  t_start = t_start,
+  map_mat = my_map_mat,
+  start_pop_mat = start_pop_mat,
+  live_map_3d = raster_vegid_3d,
+  N = sample_N,
+  kernel = kern,
+  n_max = 500e3
+)
+```
+
+## Example of a genomic simulation: running a *prehistorik* model using *slendr* 
+
+Now that we obtain the *prehistorik* model, *my_model*, we may want to use it to perform a genomic simulation. Although we could potentially use whatever software for genomic simulations we want, in order to remain within the R environment, this can be achieved using the SLiM backend of *slendr*.
+Here I show how to.
+
+```{r, eval=FALSE}
+init_env()
+
+# remove extra african populations used to fill the space
+# and keep only one African population
+# this step can be done differently, also, maybe there is no need to fill the African continent
+# with filling populations
+my_model_f <- my_model[!duplicated(my_model$pop),]
+
+# convert populations into slendr list
+pop_slendr <- create_poplist(my_model_f)
+# obtain a matrix of distances
+# threhsold indicates that tribes that are more distant than 50e3 meters
+# can't interact with each other, i.e. no gene flows
+dist_df <- create_dist_df(my_model_f, threshold = 50e3)
+# define a function that establish the degree of gene flow between pops
+# as a function of the distance
+# here I just use a proportion of 0.1 for each gene flow
+gf_fun <- function(x){
+  0.1
+}
+
+# create gf_df
+gf_df <- create_gf_df(dist_df, 30, gf_fun)
+# convert it into a slendr list of geneflows
+geneflows <- create_gf_list(gf_df, pop_slendr)
+# compile_model
+slendr_model <- compile_model(pop_slendr, generation_time = 30, gene_flow = geneflows)
+```
+
+Now that we compiled the model, we can proceed with defining some sampling locations.
+**NOTE: the sampling of individuals has to be improved **
+
+```{r, eval=FALSE}
+# decide a location
+lat <- 43
+lon <- 25
+# sample from location and convert into shcedule sampling for slendr
+samples_df1 <- get_samples_from_location(model = my_model_f, n = 3, time = 500, lat = lat, lon = lon)
+
+lat2 <- 40
+lon2 <- 45
+samples_df2 <- get_samples_from_location(model = my_model_f, n = 2, time = 500, lat = lat2, lon = lon2)
+
+samples_df <- rbind(samples_df1, samples_df2)
+# get schedule
+schedule <- get_schedule_sampling_from_df(slendr_model, samples_df)
+```
+
+Eventually we can run the model.
+
+```{r, eval=FALSE}
+rec_rate <- 1e-8
+
+# takes a long time
+ts <- slim(slendr_model, 1e3, recombination_rate = rec_rate, samples = schedule)
+# ts <- msprime(slendr_model, 1e3, recombination_rate = rec_rate, samples = schedule)
+```
+
+Now that we obtain the tree sequence object *ts*, we can do whatever we'd like! :)

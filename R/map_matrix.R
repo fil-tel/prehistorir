@@ -508,7 +508,7 @@ get_xy_from_latlon <- function(lat, lon, map_mat){
   cells <- data.frame(which(!is.na(map_mat), arr.ind = T))
   names(cells) <- c("x", "y")
   # and pick the closes to xy
-  cell_min <- cells %>% dplyr::rowwise %>% dplyr::mutate(dist_m=sqrt((x-xy[1])**2+(y-xy[2])**2)*resolution) %>% dplyr::ungroup() %>% dplyr::slice(which.min(dist_m))
+  cell_min <- cells %>% dplyr::rowwise() %>% dplyr::mutate(dist_m=sqrt((x-xy[1])**2+(y-xy[2])**2)*resolution) %>% dplyr::ungroup() %>% dplyr::slice(which.min(dist_m))
   cell_min %>% select(x,y)
 }
 
