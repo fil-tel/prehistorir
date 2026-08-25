@@ -13,10 +13,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-# *prehistorir*: a generator of hunter-gatherer tribes
+# *prehistorir* <img src="man/figures/logo.png" align="right" height="138" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
+
+## Overview
 
 *prehistorir* is a spatial simulator of hunter-gatherer tribes. The
 purpose of this project was to develop a software able to model what it
